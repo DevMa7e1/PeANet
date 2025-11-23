@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+    <title>Make a post</title>
+    <style>
+        p{
+            font-size: 20px;
+            font-weight: 200;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+        body{
+            background-color: rgb(105, 180, 250);
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <form action="/post", method="post">
+        <p>Write your post!</p>
+        <textarea name="text" id="text"></textarea>
+        <input type="submit" value="Post">
+    </form>
+</body>

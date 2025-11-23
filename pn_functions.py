@@ -3,13 +3,12 @@ import requests
 import rsa
 import random
 import string
+import threading
 
 def ppf():
     f = open("posts")
-    r = f.read().split("\n")
+    r = f.read().split(chr(27))
     f.close()
-    for i in range(len(r)):
-        r[i] = r[i].replace(chr(27), '\n')
     return r
 
 def check_ip(ip):
@@ -22,11 +21,12 @@ def check_ip(ip):
             return True
     return False
 
-def broadcast_ip_change():
+def fire_and_forget(ip, nip):
+    requests.post("http://"+ip+":8333/ipcb", {"nip": nip})
+
+def broadcast_ip_change(nip):
     successes = 0
     for i in os.listdir("./publ"):
         ip = i.removesuffix(".rsa")
-        r = requests.post("http://"+ip+"/ipcb", {"nip"})
-        if "FINISHED" in r.text:
-            successes += 1
+        threading.Thread(target=fire_and_forget, args=(ip, nip)).start()
     return successes

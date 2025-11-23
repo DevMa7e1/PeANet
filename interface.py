@@ -17,12 +17,13 @@ def get_posts():
         ip = i.removesuffix(".rsa")
         r = requests.get("http://" + ip + ":8333/l5p")
         u = requests.get("http://" + ip + ":8333/info")
+        print(r.status_code, u.status_code)
         if r.status_code == 200 and u.status_code == 200:
             for j in r.text.split(chr(27)):
                 if j != "":
-                    posts.append((u.text, j))
+                    posts.append((u.text, j.replace("\n", "<br>")))
     ret = []
-    while len(ret) < posts:
+    while len(posts) > 0:
         j = random.choice(posts)
         ret.append(j)
         posts.remove(j)
@@ -31,7 +32,7 @@ def get_posts():
 def process_posts(posts):
     ret = ""
     for i in posts:
-        ret += f'<div class="post"><p>{i[0]}</p><p>{i[1]}</p></div>\n'
+        ret += f'<div class="post"><p>-- {i[0]} --</p><p>{i[1]}</p></div>\n'
     return ret
 
 def check_ip(ip):
@@ -56,6 +57,10 @@ def add_someone():
     return "SUCCESS"
 @app.route("/post", methods=["POST"])
 def make_a_post():
-    f = open("posts", 'w')
+    text = request.form.get("text")
+    f = open("posts", 'a')
+    f.write(text+chr(27))
+    f.close()
+    return redirect("/")
 
 app.run('0.0.0.0', 7444)

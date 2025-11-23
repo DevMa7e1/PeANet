@@ -1,10 +1,9 @@
 from flask import Flask, request
 import rsa
 import os
-import requests
-import random
-import string
 import pn_functions
+import requests
+import time
 
 if not os.path.exists("pub.rsa"):
     print("First startup, generating keys...")
@@ -39,7 +38,7 @@ if os.path.exists("ipaddr"):
     f.close()
 else:
     ipaddr = input("Please input your IP address>")
-    pn_functions.broadcast_ip_change()
+    pn_functions.broadcast_ip_change(ipaddr)
     f = open("ipaddr", 'w')
     f.write(ipaddr)
     f.close()
@@ -72,18 +71,19 @@ def send_info():
     return r
 @app.route("/ipcb", methods=["POST"])
 def ip_changed():
-    pubk = request.form.get("pubk")
-    nip = request.form.get("ip")
+    time.sleep(5)
+    nip = request.form.get("nip")
+    pubk = requests.get("http://"+nip+":8333/").text
     for i in os.listdir("./publ"):
-        f = open(i)
+        f = open("./publ/"+i)
         r = f.read()
         f.close()
         if r == pubk:
-            f = open(nip+".rsa", 'w')
+            f = open("./publ/"+nip+".rsa", 'w')
             f.write(pubk)
             f.close()
             if pn_functions.check_ip(nip):
-                os.remove(i)
+                os.remove("./publ/"+i)
             else:
                 return "ILLEGAL REQUEST"
     return "PROCEDURE FINISHED"
