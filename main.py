@@ -58,10 +58,10 @@ def get_last_5_posts():
     ret = ""
     if len(posts) >= 5:
         for i in range(5):
-            ret += posts[len(posts)-1-i]+chr(27)
+            ret += posts[len(posts)-1-i]+chr(27).split(chr(23))[1]
     else:
         for i in range(len(posts)):
-            ret += posts[len(posts)-1-i]+chr(27)
+            ret += posts[len(posts)-1-i]+chr(27).split(chr(23))[1]
     return ret
 @app.route("/info")
 def send_info():
