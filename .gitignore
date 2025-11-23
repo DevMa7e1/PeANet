@@ -163,3 +163,5 @@ cython_debug/
 *.rsa
 #Posts
 posts
+#IP address
+ipaddr
