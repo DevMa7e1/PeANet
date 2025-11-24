@@ -5,6 +5,7 @@ import random
 import rsa
 import string
 import time
+import html
 
 app = Flask(__name__)
 
@@ -12,32 +13,40 @@ f = open("template.html")
 template = f.read()
 f.close()
 
+def reverse(lis):
+    ret = []
+    for i in range(len(lis)):
+        ret.append(lis[len(lis)-1-i])
+    return ret
+
 def get_posts():
     posts = []
     for i in os.listdir("./publ"):
         ip = i.removesuffix(".rsa")
         try:
-            r = requests.get("http://" + ip + ":8333/l5p")
+            r = requests.get("http://" + ip + ":8333/p")
             u = requests.get("http://" + ip + ":8333/info")
             if r.status_code == 200 and u.status_code == 200:
                 for j in r.text.split(chr(27)):
                     if j != "":
-                        posts.append((u.text, j.replace("\n", "<br>")))
+                        if len(j.split(chr(23))) == 3:
+                            posts.append([html.escape(u.text), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2]])
+                        else:
+                            posts.append([html.escape(u.text), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
         except:
             pass
-    ret = []
-    while len(posts) > 0:
-        j = random.choice(posts)
-        ret.append(j)
-        posts.remove(j)
-    return ret
+    n = len(posts)
+    for i in range(n-1):
+        for j in range(n-i-1):
+            if float(posts[j][2]) > float(posts[j+1][2]):
+                posts[j], posts[j+1] = posts[j+1], posts[j]
+    return reverse(posts)
 
 def process_posts(posts):
     ret = ""
     for i in posts:
-        ret += f'<div class="post"><p>-- {i[0]} --</p><p>{i[1]}</p></div>\n'
+        ret += f'<div class="post"><div class="minc"><p class="mini">{i[2]}</p></div><div class="minc"><p class="mini">{i[3]}</p></div><p>-- {i[0]} --</p><p>{i[1]}</p><a href="/static/reply.html?id={i[3]}"><button>Reply</button></a></div><br>\n'
     return ret
-
 def check_ip(ip):
     if os.path.exists(f"./publ/{ip}.rsa"):
         f = open(f"./publ/{ip}.rsa")
@@ -62,7 +71,10 @@ def add_someone():
 def make_a_post():
     text = request.form.get("text")
     f = open("posts", 'a')
-    f.write(str(time.time())+chr(23)+text+chr(27))
+    id = ""
+    for i in range(11):
+        id += random.choice(string.ascii_letters)
+    f.write(str(time.time())+chr(23)+text+chr(23)+id+chr(27))
     f.close()
     return redirect("/")
 @app.route("/edit", methods=["POST"])
@@ -101,10 +113,21 @@ def view_all_my_posts():
     for i in r:
         ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[0]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[0]}"><button>Delete</button></a></div>'
     return ret
+@app.route("/reply", methods=["POST"])
+def reply_to_a_post():
+    id = request.form.get("id")
+    text = request.form.get("text")
+    f = open("posts", 'a')
+    id = ""
+    for i in range(11):
+        id += random.choice(string.ascii_letters)
+    f.write(str(time.time())+chr(23)+text+chr(23)+id+chr(23)+id+chr(27))
+    f.close()
+    return redirect("/")
+
 @app.route("/favicon.ico")
 def retur_favicon():
     f = open("favicon.ico", 'rb')
     r = f.read()
     return r
-
 app.run('0.0.0.0', 7444)

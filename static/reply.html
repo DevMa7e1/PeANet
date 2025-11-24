@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+    <title>Edit a post</title>
+    <style>
+        p{
+            font-size: 20px;
+            font-weight: 200;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+        body{
+            background-color: rgb(105, 180, 250);
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+    <script>
+        window.onload = function loadaaaaa(){
+            let params = new URLSearchParams(document.location.search)
+            document.getElementById("id").value = params.get("id")
+        }
+    </script>
+</head>
+<body>
+    <form action="/reply" method="post">
+        <p>ID:</p>
+        <textarea id="id" name="id" readonly></textarea><br>
+        <p>Your reply:</p>
+        <textarea name="text" id="text"></textarea>
+        <input type="submit" value="Post">
+    </form>
+</body>

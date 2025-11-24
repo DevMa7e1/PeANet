@@ -52,16 +52,12 @@ def root():
 def challange():
     byts = request.form.get("byts").encode("Latin-1")
     return rsa.decrypt(byts, pri)
-@app.route("/l5p")
-def get_last_5_posts():
+@app.route("/p")
+def get_posts():
     posts = pn_functions.ppf()
     ret = ""
-    if len(posts) >= 5:
-        for i in range(5):
-            ret += posts[len(posts)-1-i]+chr(27).split(chr(23))[1]
-    else:
-        for i in range(len(posts)):
-            ret += posts[len(posts)-1-i]+chr(27).split(chr(23))[1]
+    for i in posts:
+        ret += i + chr(27)
     return ret
 @app.route("/info")
 def send_info():
