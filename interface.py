@@ -20,7 +20,17 @@ def reverse(lis):
     return ret
 
 def get_posts():
+    f = open("posts")
+    r = f.read()
+    f.close()
     posts = []
+    u = "Me"
+    for j in r.split(chr(27)):
+        if j != "":
+            if len(j.split(chr(23))) == 3:
+                posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2]])
+            else:
+                posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
     for i in os.listdir("./publ"):
         ip = i.removesuffix(".rsa")
         try:
@@ -40,12 +50,41 @@ def get_posts():
         for j in range(n-i-1):
             if float(posts[j][2]) > float(posts[j+1][2]):
                 posts[j], posts[j+1] = posts[j+1], posts[j]
-    return reverse(posts)
+    ret = []
+    for i in posts:
+        if len(i) == 4:
+            ret.append([i])
+        else:
+            for j in ret:
+                if len(j) > 1:
+                    for a in j:
+                        if type(a[0]) == list:
+                            if i[4] == a[0][3]:
+                                a.append([i])
+                else:
+                    if type(j[0]) == list:
+                        if i[4] == j[0][3]:
+                            j.append([i])
+    return reverse(ret)
 
 def process_posts(posts):
     ret = ""
     for i in posts:
-        ret += f'<div class="post"><div class="minc"><p class="mini">{i[2]}</p></div><div class="minc"><p class="mini">{i[3]}</p></div><p>-- {i[0]} --</p><p>{i[1]}</p><a href="/static/reply.html?id={i[3]}"><button>Reply</button></a></div><br>\n'
+        if len(i) < 2:
+            ret += f'<div class="post"><div class="minc"><p class="mini">{i[0][2]}</p></div><div class="minc"><p class="mini">{i[0][3]}</p></div><p>-- {i[0][0]} --</p><p>{i[0][1]}</p><a href="/static/reply.html?id={i[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+        else:
+            for a in i:
+                if type(a[0]) == list:
+                    if len(a) < 2:
+                        ret += f'<div class="post" style="margin-left: 30px;"><div class="minc"><p class="mini">{a[0][2]}</p></div><div class="minc"><p class="mini">{a[0][3]}</p></div><p>-- {a[0][0]} --</p><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                    else:
+                        ret += f'<div class="post" style="margin-left: 30px;"><div class="minc"><p class="mini">{a[0][2]}</p></div><div class="minc"><p class="mini">{a[0][3]}</p></div><p>-- {a[0][0]} --</p><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                        for b in a:
+                            if type(b[0]) == list:
+                                ret += f'<div class="post" style="margin-left: 60px;"><div class="minc"><p class="mini">{b[0][2]}</p></div><div class="minc"><p class="mini">{b[0][3]}</p></div><p>-- {b[0][0]} --</p><p>{b[0][1]}</p><a href="/static/reply.html?id={b[0][3]}"></a></div><br>\n'
+                else:
+                    ret += f'<div class="post"><div class="minc"><p class="mini">{a[2]}</p></div><div class="minc"><p class="mini">{i[0][3]}</p></div><p>-- {a[0]} --</p><p>{a[1]}</p><a href="/static/reply.html?id={a[3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                
     return ret
 def check_ip(ip):
     if os.path.exists(f"./publ/{ip}.rsa"):
@@ -85,8 +124,9 @@ def edit_a_post():
     r = f.read()
     f.close()
     for i in r.split(chr(27)):
-        if i.split(chr(23))[0] == old:
-            r = r.replace(i+chr(27), str(time.time())+chr(23)+text+chr(27))
+        if i != "":
+            if i.split(chr(23))[2] == old:
+                r = r.replace(i+chr(27), str(time.time())+chr(23)+text+chr(23)+i.split(chr(23),2)[2]+chr(27))
     f = open("posts", 'w')
     f.write(r)
     f.close()
@@ -98,7 +138,7 @@ def delete_a_post():
     r = f.read()
     f.close()
     for i in r.split(chr(27)):
-        if i.split(chr(23))[0] == text:
+        if i.split(chr(23))[1] == text:
             r = r.replace(i+chr(27), "")
     f = open("posts", 'w')
     f.write(r)
@@ -111,17 +151,17 @@ def view_all_my_posts():
     r.remove("")
     ret = template
     for i in r:
-        ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[0]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[0]}"><button>Delete</button></a></div>'
+        ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
     return ret
 @app.route("/reply", methods=["POST"])
 def reply_to_a_post():
-    id = request.form.get("id")
+    idr = request.form.get("id")
     text = request.form.get("text")
     f = open("posts", 'a')
     id = ""
     for i in range(11):
         id += random.choice(string.ascii_letters)
-    f.write(str(time.time())+chr(23)+text+chr(23)+id+chr(23)+id+chr(27))
+    f.write(str(time.time())+chr(23)+text+chr(23)+id+chr(23)+idr+chr(27))
     f.close()
     return redirect("/")
 
