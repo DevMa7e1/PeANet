@@ -52,12 +52,15 @@ def root():
 def challange():
     byts = request.form.get("byts").encode("Latin-1")
     return rsa.decrypt(byts, pri)
-@app.route("/p")
+@app.route("/p", methods=["POST"])
 def get_posts():
-    posts = pn_functions.ppf()
+    ip = request.form.get("ip")
     ret = ""
-    for i in posts:
-        ret += i + chr(27)
+    if os.path.exists(f"./publ/{ip}.rsa"):
+        if pn_functions.check_ip(ip):
+            posts = pn_functions.ppf()
+            for i in posts:
+                ret += i + chr(27)
     return ret
 @app.route("/info")
 def send_info():

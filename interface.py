@@ -2,7 +2,6 @@ from flask import Flask, request, redirect
 import os
 import requests
 import random
-import rsa
 import string
 import time
 import html
@@ -34,7 +33,10 @@ def get_posts():
     for i in os.listdir("./publ"):
         ip = i.removesuffix(".rsa")
         try:
-            r = requests.get("http://" + ip + ":8333/p")
+            f = open("ipaddr")
+            ipaddr = f.read()
+            f.close()
+            r = requests.post("http://" + ip + ":8333/p", {"ip": ipaddr})
             u = requests.get("http://" + ip + ":8333/info")
             if r.status_code == 200 and u.status_code == 200:
                 for j in r.text.split(chr(27)):
@@ -71,34 +73,25 @@ def process_posts(posts):
     ret = ""
     for i in posts:
         if len(i) < 2:
-            ret += f'<div class="post"><div class="minc"><p class="mini">{i[0][2]}</p></div><div class="minc"><p class="mini">{i[0][3]}</p></div><p>-- {i[0][0]} --</p><p>{i[0][1]}</p><a href="/static/reply.html?id={i[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+            ret += f'<div class="post"><div class="minc"><p class="unm">-- {i[0][0]} --</p><div><p class="mini">{i[0][2]}</p><p class="mini">{i[0][3]}</p></div></div><p>{i[0][1]}</p><a href="/static/reply.html?id={i[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
         else:
             for a in i:
                 if type(a[0]) == list:
                     if len(a) < 2:
-                        ret += f'<div class="post" style="margin-left: 30px;"><div class="minc"><p class="mini">{a[0][2]}</p></div><div class="minc"><p class="mini">{a[0][3]}</p></div><p>-- {a[0][0]} --</p><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                        ret += f'<div class="post" style="margin-left: 30px"><div class="minc"><p class="unm">-- {a[0][0]} --</p><div><p class="mini">{a[0][2]}</p><p class="mini">{a[0][3]}</p></div></div><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
                     else:
-                        ret += f'<div class="post" style="margin-left: 30px;"><div class="minc"><p class="mini">{a[0][2]}</p></div><div class="minc"><p class="mini">{a[0][3]}</p></div><p>-- {a[0][0]} --</p><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                        ret += f'<div class="post" style="margin-left: 30px"><div class="minc"><p class="unm">-- {a[0][0]} --</p><div><p class="mini">{a[0][2]}</p><p class="mini">{a[0][3]}</p></div></div><p>{a[0][1]}</p><a href="/static/reply.html?id={a[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
                         for b in a:
                             if type(b[0]) == list:
-                                ret += f'<div class="post" style="margin-left: 60px;"><div class="minc"><p class="mini">{b[0][2]}</p></div><div class="minc"><p class="mini">{b[0][3]}</p></div><p>-- {b[0][0]} --</p><p>{b[0][1]}</p><a href="/static/reply.html?id={b[0][3]}"></a></div><br>\n'
+                                ret += f'<div class="post" style="margin-left: 60px"><div class="minc"><p class="unm">-- {b[0][0]} --</p><div><p class="mini">{b[0][2]}</p><p class="mini">{b[0][3]}</p></div></div><p>{b[0][1]}</p><a href="/static/reply.html?id={b[0][3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
                 else:
-                    ret += f'<div class="post"><div class="minc"><p class="mini">{a[2]}</p></div><div class="minc"><p class="mini">{i[0][3]}</p></div><p>-- {a[0]} --</p><p>{a[1]}</p><a href="/static/reply.html?id={a[3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
+                    ret += f'<div class="post"><div class="minc"><p class="unm">-- {a[0]} --</p><div><p class="mini">{a[2]}</p><p class="mini">{a[3]}</p></div></div><p>{a[1]}</p><a href="/static/reply.html?id={a[3]}"><span class="material-symbols-outlined">add_comment</span></a></div><br>\n'
                 
     return ret
-def check_ip(ip):
-    if os.path.exists(f"./publ/{ip}.rsa"):
-        f = open(f"./publ/{ip}.rsa")
-        pubk = rsa.PublicKey.load_pkcs1(f.read())
-        ts = (random.choice(string.ascii_letters) + random.choice(string.ascii_letters) + random.choice(string.ascii_letters) + random.choice(string.ascii_letters)).encode("Latin-1")
-        r = requests.post("http://"+ip+":8333/ch", {"byts":rsa.encrypt(ts, pubk).decode("Latin-1")})
-        if r.text == ts.decode():
-            return True
-    return False
 
 @app.route("/")
 def root():
-    return template + '<a href="/view_all"><button>View my posts</button></a>' + process_posts(get_posts()) + "</body></html>"
+    return template + '' + process_posts(get_posts()) + "</body></html>"
 @app.route("/add")
 def add_someone():
     ip = request.args.get("ip")
@@ -149,9 +142,13 @@ def view_all_my_posts():
     f = open("posts")
     r = f.read().split(chr(27))
     r.remove("")
-    ret = template
-    for i in r:
-        ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
+    ret = template + '<h1 style="font-size: 50px; font-weight: 600;">My posts</h1>'
+    for l in range(len(r)):
+        i = r[len(r)-l-1]
+        if len(i.split(chr(23))) == 3:
+            ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
+        else:
+            ret += f'<div class="post"><p class="unm">*Reply*</p><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/static/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
     return ret
 @app.route("/reply", methods=["POST"])
 def reply_to_a_post():
