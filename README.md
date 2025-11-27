@@ -59,10 +59,10 @@ This file stores the Unix time for when you last requested / from interface.py. 
 * /last **[POST]** -> takes in ip, returns the user's last access time if identity is successfully validated
 #### For port 7444
 * / **[GET]** -> main page
-* /add **[POST]** -> adds a new node (accessed through /static/addpr.html)
-* /post **[POST]** -> makes a new post (accessed through /static/post.html)
-* /edit **[POST]** -> edits a post (accessed through /static/edit.html)
+* /add **[POST]** -> adds a new node (accessed through /addpr.html)
+* /post **[POST]** -> makes a new post (accessed through /post.html)
+* /edit **[POST]** -> edits a post (accessed through /edit.html)
 * /del **[GET]** -> deletes a post, takes in argument text (post's ID)
 * /view_all **[GET]** -> returns interface for seeing all your posts. From here you can also edit and delete posts.
-* /reply **[POST]** -> makes a new reply (accessed through /static/reply.html)
+* /reply **[POST]** -> makes a new reply (accessed through /reply.html)
 * /favicon.ico **[GET]** -> returns PeANet's logo's contents. Exists because of how browsers request the favicon.
