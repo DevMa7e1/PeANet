@@ -30,12 +30,12 @@ def get_posts():
                 posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2]])
             else:
                 posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
+    f = open("ipaddr")
+    ipaddr = f.read()
+    f.close()
     for i in os.listdir("./publ"):
         ip = i.removesuffix(".rsa")
         try:
-            f = open("ipaddr")
-            ipaddr = f.read()
-            f.close()
             r = requests.post("http://" + ip + ":8333/p", {"ip": ipaddr})
             u = requests.get("http://" + ip + ":8333/info")
             if r.status_code == 200 and u.status_code == 200:
@@ -89,9 +89,44 @@ def process_posts(posts):
                 
     return ret
 
+def get_all_last_access_times():
+    f = open("ipaddr")
+    ipaddr = f.read()
+    f.close()
+    lat = []
+    for i in os.listdir("./publ"):
+        ip = i.removesuffix(".rsa")
+        r = requests.post(f"http://{ip}:8333/last", {"ip": ipaddr})
+        u = requests.get(f"http://{ip}:8333/info")
+        if r.status_code == 200 and r.text != "0" and u.status_code == 200:
+            lat.append([float(r.text), u.text])
+    n = len(lat)
+    for i in range(n-1):
+        for j in range(n-i-1):
+            if lat[j][0] > lat[j+1][0]:
+                lat[j], lat[j+1] = lat[j+1], lat[j]
+    for i in lat:
+        i[0] = sec_diff_to_human_readable(time.time() - i[0])
+    return reverse(lat)
+
+def sec_diff_to_human_readable(diff):
+    if diff < 60:
+        return f"{str(round(diff))}s ago"
+    elif diff < 60*60:
+        return f"{str(round(diff/60))}m ago"
+    elif diff < 60*60*24:
+        return f"{str(round(diff/60/60))}h ago"
+    else:
+        return f"{str(round(diff/60/60/24))} days ago"
 @app.route("/")
 def root():
-    return template + '' + process_posts(get_posts()) + "</body></html>"
+    f = open("last", 'w')
+    f.write(str(time.time()))
+    f.close()
+    lat = ""
+    for i in get_all_last_access_times()[:3]:
+        lat += f'<div class="time"><p>{i[1]} was online {i[0]}</p></div>'
+    return template + lat + process_posts(get_posts()) + "</body></html>"
 @app.route("/add")
 def add_someone():
     ip = request.args.get("ip")

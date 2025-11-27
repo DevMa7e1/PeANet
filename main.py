@@ -24,6 +24,9 @@ if not os.path.exists("pub.rsa"):
     f.close()
     f = open("posts", 'x')
     f.close()
+    f = open("last", 'w')
+    f.write(str(time.time()))
+    f.close()
 else:
     f = open("pub.rsa", 'rb')
     pub = rsa.PublicKey.load_pkcs1(f.read())
@@ -86,5 +89,14 @@ def ip_changed():
             else:
                 return "ILLEGAL REQUEST"
     return "PROCEDURE FINISHED"
+@app.route("/last", methods=["POST"])
+def get_last_access_time():
+    ip = request.form.get("ip")
+    if pn_functions.check_ip(ip):
+        f = open("last")
+        r = f.read()
+        f.close()
+        return r
+    return "0"
 
 app.run('0.0.0.0', 8333)
