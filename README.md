@@ -66,3 +66,9 @@ This file stores the Unix time for when you last requested / from interface.py. 
 * /view_all **[GET]** -> returns interface for seeing all your posts. From here you can also edit and delete posts.
 * /reply **[POST]** -> makes a new reply (accessed through /reply.html)
 * /favicon.ico **[GET]** -> returns PeANet's logo's contents. Exists because of how browsers request the favicon.
+## How to build
+main.py:<br>
+`pyinstaller main.py -F`
+
+interface.py:<br>
+`pyinstaller interface.py -F --add-data "*.html:." --add-data "favicon.ico:."`

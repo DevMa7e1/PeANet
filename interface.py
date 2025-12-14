@@ -5,10 +5,18 @@ import random
 import string
 import time
 import html
+import sys
 
 app = Flask(__name__)
 
-f = open("template.html")
+def get_packaged_files_path():
+    if getattr(sys, 'frozen', False):
+        path = sys._MEIPASS
+    else:
+        path = '.'
+    return path
+
+f = open(os.path.join(get_packaged_files_path(), "template.html"))
 template = f.read()
 f.close()
 
@@ -202,32 +210,32 @@ def reply_to_a_post():
 
 @app.route("/favicon.ico")
 def retur_favicon():
-    f = open("favicon.ico", 'rb')
+    f = open(os.path.join(get_packaged_files_path(), "favicon.ico"), 'rb')
     r = f.read()
     return r
 # Lazy fixes for static folder problems start here
 # Ye srry I couldn't come up with proper fixes
 @app.route("/post.html")
 def post():
-    f = open("post.html")
+    f = open(os.path.join(get_packaged_files_path(), "post.html"))
     r = f.read()
     f.close
     return r
 @app.route("/edit.html")
 def edit():
-    f = open("edit.html")
+    f = open(os.path.join(get_packaged_files_path(), "edit.html"))
     r = f.read()
     f.close
     return r
 @app.route("/reply.html")
 def reply():
-    f = open("reply.html")
+    f = open(os.path.join(get_packaged_files_path(), "reply.html"))
     r = f.read()
     f.close
     return r
 @app.route("/addpr.html")
 def addpr():
-    f = open("addpr.html")
+    f = open(os.path.join(get_packaged_files_path(), "addpr.html"))
     r = f.read()
     f.close
     return r
