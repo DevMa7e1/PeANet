@@ -144,7 +144,7 @@ def add_someone():
     f = open(f"./publ/{ip}.rsa", 'wb')
     r = requests.get("http://"+ip+":8333/")
     f.write(r.text.encode("Latin-1"))
-    return "SUCCESS"
+    return redirect("/")
 @app.route("/post", methods=["POST"])
 def make_a_post():
     text = request.form.get("text")
@@ -192,9 +192,9 @@ def view_all_my_posts():
     for l in range(len(r)):
         i = r[len(r)-l-1]
         if len(i.split(chr(23))) == 3:
-            ret += f'<div class="post"><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
+            ret += f'<div class="post"><p>{i.split(chr(23))[1].replace(chr(10), "<br>")}</p><a href="/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
         else:
-            ret += f'<div class="post"><p class="unm">*Reply*</p><p>{i.split(chr(23))[1].replace("\n", "<br>")}</p><a href="/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
+            ret += f'<div class="post"><p class="unm">*Reply*</p><p>{i.split(chr(23))[1].replace(chr(10), "<br>")}</p><a href="/edit.html?text={i.split(chr(23))[2]}"><button>Edit</button></a><a href="/del?text={i.split(chr(23))[2]}"><button>Delete</button></a></div>'
     return ret
 @app.route("/reply", methods=["POST"])
 def reply_to_a_post():
