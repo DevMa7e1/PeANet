@@ -2,6 +2,18 @@
 ### Personal Access Network
 Simple social network with no central servers. Absolutely everything is hosted by users. This means complete access to your data, who can access it and how. Edit or delete posts at will, change your username anytime you want, etc.
 
+## How to setup and run PeANet
+Steps:
+
+1. From Releases, download the PeANet binaries for your operating system and architecture
+2. Unzip the zip file and access its contents
+3. Run main(.exe)
+4. Wait for main to generate the keys
+5. Input your username and public IP address
+6. Run interface(.exe) (without closing main)
+7. Go to http://[your server's IP]:7444/
+8. Done!
+
 ## How it works
 Your node communicates with the outside world through port 8333, controlled by main.py. PeANet's interface (from which you can make posts and see others' posts) is hosted on port 7444, controlled by interface.py.
 ### WARNING
