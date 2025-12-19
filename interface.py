@@ -27,17 +27,7 @@ def reverse(lis):
     return ret
 
 def get_posts():
-    f = open("posts")
-    r = f.read()
-    f.close()
     posts = []
-    u = "Me"
-    for j in r.split(chr(27)):
-        if j != "":
-            if len(j.split(chr(23))) == 3:
-                posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2]])
-            else:
-                posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
     f = open("ipaddr")
     ipaddr = f.read()
     f.close()
@@ -55,6 +45,17 @@ def get_posts():
                             posts.append([html.escape(u.text), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
         except:
             pass
+    f = open("posts")
+    r = f.read()
+    f.close()
+    posts = []
+    u = "Me"
+    for j in r.split(chr(27)):
+            if j != "":
+                if len(j.split(chr(23))) == 3:
+                    posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2]])
+                else:
+                    posts.append([html.escape(u), html.escape(j).replace("\n", "<br>").split(chr(23))[1], j.split(chr(23))[0], j.split(chr(23))[2], j.split(chr(23))[3]])
     n = len(posts)
     for i in range(n-1):
         for j in range(n-i-1):
@@ -68,6 +69,9 @@ def get_posts():
             for j in ret:
                 if len(j) > 1:
                     for a in j:
+                        if type(a[0]) == str:
+                            if i[4] == a[3]:
+                                j.append([i])
                         if type(a[0]) == list:
                             if i[4] == a[0][3]:
                                 a.append([i])
@@ -177,8 +181,9 @@ def delete_a_post():
     r = f.read()
     f.close()
     for i in r.split(chr(27)):
-        if i.split(chr(23))[1] == text:
-            r = r.replace(i+chr(27), "")
+        if len(i.split(chr(23))) > 1:
+            if i.split(chr(23))[2] == text:
+                r = r.replace(i+chr(27), "")
     f = open("posts", 'w')
     f.write(r)
     f.close()
